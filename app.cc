@@ -1,14 +1,18 @@
 #include <cstdio>
 
 #include <gflags/gflags.h>
+#include <GL/glew.h>
+
 #include "app.h"
 #include "imgui.h"
+#include "absl/memory/memory.h"
 #include "absl/strings/match.h"
 #include "imwidget/error_dialog.h"
 #include "util/browser.h"
 #include "util/os.h"
 #include "util/logging.h"
 #include "util/imgui_impl_sdl.h"
+#include "glm/gtc/type_ptr.hpp"
 
 #include "version.h"
 
@@ -20,12 +24,82 @@
 namespace project {
 
 void App::Init() {
+    GLenum err = glewInit();
+    if (err != GLEW_OK) {
+        LOGF(FATAL, "GLEW Error: %s\n", glewGetErrorString(err));
+        abort();
+    }
+    clear_color_ = ImVec4(0, 0, 0, 0);
+    theta_ = 3.141592654f;
+    phi_ = 0;
+
+#if 0
+    scene_ = absl::make_unique<GFX::RayMarchScene>(640, 480);
+    if (scene_->LoadProgram("content/raymarch.vs", "content/raymarch.fs")) {
+        LOGF(INFO, "Shader program loaded.");
+    }
+    scene_->Init();
+#endif
+    scene_ = absl::make_unique<GFX::SWMarcher>(256, 256);
 }
 
 void App::ProcessEvent(SDL_Event* event) {
 }
 
 void App::ProcessMessage(const std::string& msg, const void* extra) {
+}
+
+bool App::PreDraw() {
+    ImGuiIO& io = ImGui::GetIO();
+    auto* c = scene_->camera();
+    float speed = 0.1f;
+    float rspeed = 0.05f;
+
+    if (io.KeysDown[SDL_SCANCODE_Q]) {
+        c->eye -= c->right * speed;
+    } else if (io.KeysDown[SDL_SCANCODE_E]) {
+        c->eye += c->right * speed;
+    }
+    if (io.KeysDown[SDL_SCANCODE_W]) {
+        c->eye += c->forward * speed;
+    } else if (io.KeysDown[SDL_SCANCODE_S]) {
+        c->eye -= c->forward * speed;
+    }
+    if (io.KeysDown[SDL_SCANCODE_A]) {
+        theta_ -= rspeed;
+    } else if (io.KeysDown[SDL_SCANCODE_D]) {
+        theta_ += rspeed;
+    }
+    if (io.KeysDown[SDL_SCANCODE_2]) {
+        phi_ -= rspeed;
+    } else if (io.KeysDown[SDL_SCANCODE_X]) {
+        phi_ += rspeed;
+    }
+
+    LOGF(INFO, "eye = (%.2f, %.2f, %.2f)", c->eye.x, c->eye.y, c->eye.z);
+    LOGF(INFO, "theta=%.2f phi=%.2f", theta_, phi_);
+
+
+    float cost = cosf(theta_), sint = sinf(theta_);
+    float cosp = cosf(phi_), sinp = sinf(phi_);
+
+
+    c->forward = glm::vec3(sint*cosp, -sinp, cost*cosp);
+    c->right = glm::vec3(cost, 0.0f, -sint);
+    c->up = glm::normalize(glm::cross(c->forward, c->right));
+
+    LOGF(INFO, "up = (%.2f, %.2f, %.2f)", c->up.x, c->up.y, c->up.z);
+    LOGF(INFO, "right = (%.2f, %.2f, %.2f)", c->right.x, c->right.y, c->right.z);
+    LOGF(INFO, "forward = (%.2f, %.2f, %.2f)", c->forward.x, c->forward.y, c->forward.z);
+
+
+    glViewport(0, 0,
+               (int)ImGui::GetIO().DisplaySize.x,
+               (int)ImGui::GetIO().DisplaySize.y);
+    glClearColor(clear_color_.x, clear_color_.y, clear_color_.z, clear_color_.w);
+    glClear(GL_COLOR_BUFFER_BIT);
+    //scene_->Draw();
+    return true;
 }
 
 void App::Draw() {
@@ -116,6 +190,17 @@ save_as:
         free(filename);
     }
 #endif
+    if (ImGui::Begin("stuff")) {
+        ImGui::ColorPicker4("Sky Color", glm::value_ptr(scene_->sky_color_));
+        ImGui::ColorPicker4("Ambient", glm::value_ptr(scene_->ambient_));
+//        ImGui::ColorPicker4("Light0", glm::value_ptr(scene_->light0col_));
+        ImGui::End();
+    }
+    if (ImGui::Begin("Scene")) {
+        scene_->Draw();
+        ImGui::End();
+    }
+
 }
 
 void App::Help(const std::string& topickey) {

@@ -82,6 +82,15 @@ bind(
     actual = "@nativefiledialog_git//:nfd",
 )
 
+######################################################################
+# glm
+######################################################################
+new_git_repository(
+    name = "glm_git",
+    tag = "0.9.9.0",
+    remote = "https://github.com/g-truc/glm.git",
+    build_file = "//rules:glm.BUILD",
+)
 
 ######################################################################
 # compilers for windows

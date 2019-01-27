@@ -32,6 +32,7 @@ cc_library(
         "app.cc",
     ],
     deps = [
+        "//gfx:swmarch",
         "//imwidget:base",
         "//imwidget:error_dialog",
         "//util:browser",
@@ -91,6 +92,7 @@ cc_binary(
             "-lpthread",
             "-lm",
             "-lGL",
+            "-lGLEW",
         ],
     }),
     srcs = [

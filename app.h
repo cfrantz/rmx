@@ -4,6 +4,8 @@
 #include <string>
 #include <SDL2/SDL.h>
 
+//#include "gfx/raymarch.h"
+#include "gfx/swmarch.h"
 #include "imwidget/imapp.h"
 
 namespace project {
@@ -16,11 +18,15 @@ class App: public ImApp {
     void Init() override;
     void ProcessEvent(SDL_Event* event) override;
     void ProcessMessage(const std::string& msg, const void* extra) override;
+    bool PreDraw() override;
     void Draw() override;
 
     void Help(const std::string& topickey);
   private:
     std::string save_filename_;
+    std::unique_ptr<GFX::SWMarcher> scene_;
+    float theta_, phi_;
+    static constexpr float TAU = 3.141592654f * 2.0f;
 };
 
 }  // namespace project

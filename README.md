@@ -1,3 +1,3 @@
-# An Empty Project
+# Ray Marching Explorer
 
-An empty project with a bazel workspace and useful libraries.
+A project to explore ray marching.
