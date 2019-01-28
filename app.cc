@@ -76,21 +76,22 @@ bool App::PreDraw() {
         phi_ += rspeed;
     }
 
-    LOGF(INFO, "eye = (%.2f, %.2f, %.2f)", c->eye.x, c->eye.y, c->eye.z);
-    LOGF(INFO, "theta=%.2f phi=%.2f", theta_, phi_);
 
 
     float cost = cosf(theta_), sint = sinf(theta_);
     float cosp = cosf(phi_), sinp = sinf(phi_);
 
-
     c->forward = glm::vec3(sint*cosp, -sinp, cost*cosp);
     c->right = glm::vec3(cost, 0.0f, -sint);
     c->up = glm::normalize(glm::cross(c->forward, c->right));
 
+    /*
+    LOGF(INFO, "eye = (%.2f, %.2f, %.2f)", c->eye.x, c->eye.y, c->eye.z);
+    LOGF(INFO, "theta=%.2f phi=%.2f", theta_, phi_);
     LOGF(INFO, "up = (%.2f, %.2f, %.2f)", c->up.x, c->up.y, c->up.z);
     LOGF(INFO, "right = (%.2f, %.2f, %.2f)", c->right.x, c->right.y, c->right.z);
     LOGF(INFO, "forward = (%.2f, %.2f, %.2f)", c->forward.x, c->forward.y, c->forward.z);
+    */
 
 
     glViewport(0, 0,
