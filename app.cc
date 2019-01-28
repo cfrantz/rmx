@@ -66,9 +66,9 @@ bool App::PreDraw() {
         c->eye -= c->forward * speed;
     }
     if (io.KeysDown[SDL_SCANCODE_A]) {
-        theta_ -= rspeed;
-    } else if (io.KeysDown[SDL_SCANCODE_D]) {
         theta_ += rspeed;
+    } else if (io.KeysDown[SDL_SCANCODE_D]) {
+        theta_ -= rspeed;
     }
     if (io.KeysDown[SDL_SCANCODE_2]) {
         phi_ -= rspeed;
