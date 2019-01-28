@@ -1,4 +1,5 @@
 #include "gfx/swmarch.h"
+#include <cmath>
 
 #include "glm/glm.hpp"
 #include "imwidget/glbitmap.h"
@@ -42,6 +43,26 @@ void SWMarcher::Render() {
 //
 //========================================================================
 
+vec4 HSV(const vec4& hsv) {
+    float v = hsv.z;
+    int i = int(hsv.x * 6.0f);
+    float f = hsv.x * 6.0f - float(i);
+    float p = hsv.z * (1.0f - hsv.y);
+    float q = hsv.z * (1.0f - f * hsv.y);
+    float t = hsv.z * (1.0f - (1.0f - f) * hsv.y);
+
+    switch(i) {
+        case 0: return vec4(v, t, p, hsv.w);
+        case 1: return vec4(q, v, p, hsv.w);
+        case 2: return vec4(p, v, t, hsv.w);
+        case 3: return vec4(p, q, v, hsv.w);
+        case 4: return vec4(t, p, v, hsv.w);
+        case 5:
+        default:
+                return vec4(v, p, q, hsv.w);
+    }
+}
+
 // Maps x from the range [minX, maxX] to the range [minY, maxY]
 // The function does not clamp the result, as it may be useful
 float mapTo(float x, float minX, float maxX, float minY, float maxY)
@@ -70,8 +91,11 @@ float fBoxCheap(const glm::vec3& position, const glm::vec3& size) {
 }
 
 float DistScene(const glm::vec3& position) {
-    return fSphere(position, 0.4f);
-    //return fBoxCheap(position, vec3(1.0f, 0.25f, 0.333f));
+    float a = fSphere(position, 0.66f);
+    float b = fBoxCheap(position, vec3(1.0f, 0.25f, 0.333f));
+    // min is union
+    // max is intersection
+    return max(a, b);
 }
 
 // Approximate the normalized gradient of the distance function at point p.
@@ -118,9 +142,6 @@ vec4 SWMarcher::GetShading(
     return light_col * intensity + ambient_ * (1.0f - intensity);
 }
 
-
-
-
 void SWMarcher::RayMarch(
         const glm::vec3& ro, const glm::vec3& rd,
         int& i, float& distance) {
@@ -151,6 +172,16 @@ float SWMarcher::RaytraceFloor(
     return dot(pos - ro, normal) / dot(rd, normal);
 }
 
+vec4 DistLines(const vec3& p) {
+    float d = fmodf(DistScene(p), 0.1);
+    if (d < 0.025f) {
+        return vec4(0,0,0,1);
+    }
+    // Fun colored distance display on the floor:
+    //return HSV(vec4(fmodf(d, 0.171717f), 0.88f, 0.88f, 1.0f));
+    return vec4(1);
+}
+
 vec4 SWMarcher::ComputeColor(const vec3& ro, const vec3& rd) {
     vec3 floor_normal = vec3(0, 1, 0);
     vec3 floor_pos = vec3(0, -0.5f, 0);
@@ -170,7 +201,8 @@ vec4 SWMarcher::ComputeColor(const vec3& ro, const vec3& rd) {
         t = t1;
         p = ro + rd*t;
         normal = floor_normal;
-        texture = GetFloorTexture(p);
+        texture = GetFloorTexture(p) * DistLines(p);
+
     } else if (i < steps_ && t0 >= camera_.near && t0 < camera_.far) {
         t = t0;
         p = ro + rd*t;
