@@ -51,6 +51,9 @@ class SWMarcher {
     float RaytraceFloor(
             const glm::vec3& ro, const glm::vec3& rd,
             const glm::vec3& normal, const glm::vec3& pos);
+    void RayMarch(
+            const glm::vec3& ro, const glm::vec3& rd,
+            int& steps, float& distance);
 
 
   private:

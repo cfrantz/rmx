@@ -51,11 +51,55 @@ float mapTo(float x, float minX, float maxX, float minY, float maxY)
     return a * x + b;
 }
 
+float vmax(const glm::vec3& v) {
+    return max(max(v.x, v.y), v.z);
+}
+
+float fSphere(const glm::vec3& position, float radius) {
+    return length(position) - radius;
+}
+
+float fBoxCheap(const glm::vec3& position, const glm::vec3& size) {
+    return vmax(abs(position) - size);
+}
+
+float DistScene(const glm::vec3& position) {
+    return fSphere(position, 0.4f);
+    //return fBoxCheap(position, vec3(1.0f, 0.25f, 0.333f));
+}
+
+// Approximate the normalized gradient of the distance function at point p.
+// If p is near a surface, the gradient will approximate the surface normal.
+vec3 GetNormal(const glm::vec3& p) {
+    float h = 0.0001f;
+    return normalize(vec3(
+        DistScene(p + vec3(h, 0, 0)) - DistScene(p - vec3(h, 0, 0)),
+        DistScene(p + vec3(0, h, 0)) - DistScene(p - vec3(0, h, 0)),
+        DistScene(p + vec3(0, 0, h)) - DistScene(p - vec3(0, 0, h))));
+}
+
+void SWMarcher::RayMarch(
+        const glm::vec3& ro, const glm::vec3& rd,
+        int& i, float& distance) {
+    distance = 0.0f;
+    for(i=0; i<steps_; ++i) {
+        float d = DistScene(ro + rd * distance);
+
+        // Make epsilon proportional to the distance so that accuracy can
+        // drop as we get further into the scene.  We also just drop the
+        // ray if it goes outside the far camera bound.
+        if (d < epsilon_*distance*2.0f || distance >= camera_.far) {
+            break;
+        }
+        distance += d;
+    }
+}
+
 vec4 SWMarcher::GetFloorTexture(const vec3& pos) {
     // Compute a checkerboard texture
     vec2 m = pos.xz;
     m = mod(m, 2.0f) - 1.0f;
-    return m.x * m.y > 0.0f ? vec4(0.1f) : vec4(1.0f);
+    return m.x * m.y > 0.0f ? vec4(0.333f) : vec4(1.0f);
 }
 
 float SWMarcher::RaytraceFloor(
@@ -68,12 +112,14 @@ vec4 SWMarcher::ComputeColor(const vec3& ro, const vec3& rd) {
     vec3 floor_normal = vec3(0, 1, 0);
     vec3 floor_pos = vec3(0, -0.5f, 0);
 
-    float t;        // Distance travelled by ray to eye
-    vec3 p;         // Surface point
-    vec3 normal;    // Surface normal
-    vec4 texture;   // Surface texture
+    float t;                    // Distance travelled by ray to eye
+    vec3 p;                     // Surface point
+    vec3 normal;                // Surface normal
+    vec4 texture = vec4(1.0f);  // Surface texture
 
-    float t0 = camera_.far;
+    int i;          // Steps traveled in raymarch
+    float t0;       // Distance traveled in raymarch
+    RayMarch(ro, rd, i, t0);
     float t1 = RaytraceFloor(ro, rd, floor_normal, floor_pos);
 
     // Check if floor was closet and in view of the camera.
@@ -82,13 +128,19 @@ vec4 SWMarcher::ComputeColor(const vec3& ro, const vec3& rd) {
         p = ro + rd*t;
         normal = floor_normal;
         texture = GetFloorTexture(p);
+    } else if (i < steps_ && t0 >= camera_.near && t0 < camera_.far) {
+        t = t0;
+        p = ro + rd*t;
+        normal = GetNormal(p);
     } else {
         return sky_color_;
     }
 
     vec4 color;
     float z = mapTo(t, camera_.near, camera_.far, 1, 0);
+    // Color as a function of distance
     color = vec4(1.0f) * z * texture;
+
     return color;
 }
 

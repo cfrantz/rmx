@@ -30,7 +30,7 @@ void App::Init() {
         abort();
     }
     clear_color_ = ImVec4(0, 0, 0, 0);
-    theta_ = 3.141592654f;
+    theta_ = 0;
     phi_ = 0;
 
 #if 0
