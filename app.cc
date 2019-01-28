@@ -191,9 +191,9 @@ save_as:
     }
 #endif
     if (ImGui::Begin("stuff")) {
-        ImGui::ColorPicker4("Sky Color", glm::value_ptr(scene_->sky_color_));
-        ImGui::ColorPicker4("Ambient", glm::value_ptr(scene_->ambient_));
-//        ImGui::ColorPicker4("Light0", glm::value_ptr(scene_->light0col_));
+        ImGui::ColorEdit4("Sky Color", glm::value_ptr(scene_->sky_color_));
+        ImGui::ColorEdit4("Ambient", glm::value_ptr(scene_->ambient_));
+        ImGui::ColorEdit4("Light0", glm::value_ptr(scene_->light0col_));
         ImGui::End();
     }
     if (ImGui::Begin("Scene")) {

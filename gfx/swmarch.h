@@ -25,6 +25,8 @@ class SWMarcher {
         epsilon_(0.001f),
         sky_color_(glm::vec4(0.31f, 0.47f, 0.67f, 1.0f)),
         ambient_(glm::vec4(0.15, 0.20, 0.32, 1.0f)),
+        light0pos_(glm::vec3(0.0f, 3.0f, 0.0f)),
+        light0col_(glm::vec4(1)),
         camera_{
             glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)),
             glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)),
@@ -48,12 +50,17 @@ class SWMarcher {
     glm::vec4 RenderMain(const glm::vec2& uv);
     glm::vec4 ComputeColor(const glm::vec3& rayorigin, const glm::vec3& raydirection);
     glm::vec4 GetFloorTexture(const glm::vec3& pos);
+    float GetVisibility(const glm::vec3& p0, const glm::vec3& p1, float k);
+    glm::vec4 GetShading(
+            const glm::vec3& pos, const glm::vec3& normal,
+            const glm::vec3& light_pos, const glm::vec4& light_col);
     float RaytraceFloor(
             const glm::vec3& ro, const glm::vec3& rd,
             const glm::vec3& normal, const glm::vec3& pos);
     void RayMarch(
             const glm::vec3& ro, const glm::vec3& rd,
             int& steps, float& distance);
+
 
 
   private:
@@ -64,6 +71,8 @@ class SWMarcher {
     float epsilon_;
     glm::vec4 sky_color_;
     glm::vec4 ambient_;
+    glm::vec3 light0pos_;
+    glm::vec4 light0col_;
   private:
     Camera camera_;
 };

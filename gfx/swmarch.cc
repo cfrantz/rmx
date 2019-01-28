@@ -8,7 +8,7 @@ using namespace glm;
 
 void SWMarcher::Draw() {
     Render();
-    bitmap_.DrawAt(0, 0, 2.0f);
+    bitmap_.DrawAt(0, 0, 4.0f);
 }
 
 // The Render function simulates what the GPU would do: execute the
@@ -51,6 +51,12 @@ float mapTo(float x, float minX, float maxX, float minY, float maxY)
     return a * x + b;
 }
 
+float clamp(float v, float min, float max) {
+    return v < min ? min :
+           v > max ? max :
+           v;
+}
+
 float vmax(const glm::vec3& v) {
     return max(max(v.x, v.y), v.z);
 }
@@ -77,6 +83,43 @@ vec3 GetNormal(const glm::vec3& p) {
         DistScene(p + vec3(0, h, 0)) - DistScene(p - vec3(0, h, 0)),
         DistScene(p + vec3(0, 0, h)) - DistScene(p - vec3(0, 0, h))));
 }
+
+// Return a value [0,1] depending on how visible p1 is from p0.
+// k is the soft shadow factor (larger -> harder shadows).
+// See http://www.iquilezles.org/www/articles/rmshadows/rmshadows.htm
+float SWMarcher::GetVisibility(const vec3& p0, const vec3& p1, float k) {
+    vec3 rd = normalize(p1 - p0);
+    float maxt = length(p1 - p0);
+    float t = epsilon_ * 10.0f;
+    float f = 1.0f;
+
+    while (t < maxt) {
+        float d = DistScene(p0 + rd*t);
+
+        // If we hit a surface before reaching p1, not visible.
+        if (d < epsilon_) {
+            return 0.0f;
+        }
+        // Compute penumbra factor
+        f = min(f, k * d/t);
+        t += d;
+    }
+    return f;
+}
+vec4 SWMarcher::GetShading(
+        const vec3& pos, const vec3& normal,
+        const vec3& light_pos, const vec4& light_col) {
+    float intensity = 0.0f;
+    float vis = GetVisibility(pos, light_pos, 16.0f);
+    if (vis > 0.0f) {
+        vec3 light_dir = normalize(light_pos - pos);
+        intensity = vis * clamp(dot(normal, light_dir), 0, 1);
+    }
+    return light_col * intensity + ambient_ * (1.0f - intensity);
+}
+
+
+
 
 void SWMarcher::RayMarch(
         const glm::vec3& ro, const glm::vec3& rd,
@@ -139,7 +182,10 @@ vec4 SWMarcher::ComputeColor(const vec3& ro, const vec3& rd) {
     vec4 color;
     float z = mapTo(t, camera_.near, camera_.far, 1, 0);
     // Color as a function of distance
-    color = vec4(1.0f) * z * texture;
+    //color = vec4(1.0f) * z * texture;
+
+    // Light sourc anbd ambient with shading
+    color = texture * GetShading(p, normal, light0pos_, light0col_);
 
     return color;
 }
