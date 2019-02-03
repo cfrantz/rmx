@@ -54,6 +54,7 @@ cc_library(
     srcs = [ "swmarch.cc" ],
     hdrs = [ "swmarch.h" ],
     deps = [
+        ":camera",
         "//imwidget:glbitmap",
         "@glm_git//:glm",
     ],

@@ -1,6 +1,7 @@
 #ifndef RMX_GFX_SWMARCH_H
 #define RMX_GFX_SWMARCH_H
 
+#include "gfx/camera.h"
 #include "glm/glm.hpp"
 #include "imwidget/glbitmap.h"
 
@@ -8,16 +9,6 @@ namespace GFX {
 
 class SWMarcher {
   public:
-    struct Camera {
-        glm::vec3 up;
-        glm::vec3 right;
-        glm::vec3 forward;
-        glm::vec3 eye;
-        float focal_length;
-        float near;
-        float far;
-    };
-
     SWMarcher(int width, int height)
       : bitmap_(width, height),
         aspect_ratio_(float(width)/float(height)),
@@ -26,16 +17,8 @@ class SWMarcher {
         sky_color_(glm::vec4(0.31f, 0.47f, 0.67f, 1.0f)),
         ambient_(glm::vec4(0.15, 0.20, 0.32, 1.0f)),
         light0pos_(glm::vec3(0.0f, 3.0f, 0.0f)),
-        light0col_(glm::vec4(1)),
-        camera_{
-            glm::normalize(glm::vec3(0.0f, 1.0f, 0.0f)),
-            glm::normalize(glm::vec3(1.0f, 0.0f, 0.0f)),
-            glm::normalize(glm::vec3(0.0f, 0.0f, 1.0f)),
-            glm::vec3(0.0f, 0.0f, -2.0f),
-            1.67f,
-            0.0f,
-            150.0f
-        } {}
+        light0col_(glm::vec4(1))
+        {}
     
     void Render();
     void Draw();
