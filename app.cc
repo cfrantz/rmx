@@ -33,14 +33,15 @@ void App::Init() {
     theta_ = 0;
     phi_ = 0;
 
-#if 0
-    scene_ = absl::make_unique<GFX::RayMarchScene>(640, 480);
+#if 1
+    scene_ = absl::make_unique<GFX::RayMarchScene>(1920, 1080);
     if (scene_->LoadProgram("content/raymarch.vs", "content/raymarch.fs")) {
         LOGF(INFO, "Shader program loaded.");
     }
     scene_->Init();
-#endif
+#else
     scene_ = absl::make_unique<GFX::SWMarcher>(256, 256);
+#endif
 }
 
 void App::ProcessEvent(SDL_Event* event) {
@@ -99,7 +100,7 @@ bool App::PreDraw() {
                (int)ImGui::GetIO().DisplaySize.y);
     glClearColor(clear_color_.x, clear_color_.y, clear_color_.z, clear_color_.w);
     glClear(GL_COLOR_BUFFER_BIT);
-    //scene_->Draw();
+    scene_->Draw();
     return true;
 }
 
@@ -197,10 +198,12 @@ save_as:
         ImGui::ColorEdit4("Light0", glm::value_ptr(scene_->light0col_));
         ImGui::End();
     }
+#if 0
     if (ImGui::Begin("Scene")) {
         scene_->Draw();
         ImGui::End();
     }
+#endif
 
 }
 

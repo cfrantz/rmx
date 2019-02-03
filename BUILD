@@ -33,6 +33,7 @@ cc_library(
     ],
     deps = [
         "//gfx:swmarch",
+        "//gfx:raymarch",
         "//imwidget:base",
         "//imwidget:error_dialog",
         "//util:browser",

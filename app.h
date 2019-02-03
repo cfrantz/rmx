@@ -4,8 +4,8 @@
 #include <string>
 #include <SDL2/SDL.h>
 
-//#include "gfx/raymarch.h"
-#include "gfx/swmarch.h"
+#include "gfx/raymarch.h"
+//#include "gfx/swmarch.h"
 #include "imwidget/imapp.h"
 
 namespace project {
@@ -24,7 +24,8 @@ class App: public ImApp {
     void Help(const std::string& topickey);
   private:
     std::string save_filename_;
-    std::unique_ptr<GFX::SWMarcher> scene_;
+    //std::unique_ptr<GFX::SWMarcher> scene_;
+    std::unique_ptr<GFX::RayMarchScene> scene_;
     float theta_, phi_;
     static constexpr float TAU = 3.141592654f * 2.0f;
 };
