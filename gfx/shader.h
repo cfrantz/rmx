@@ -4,6 +4,7 @@
 #include <string>
 #include <memory>
 #include <GL/glew.h>
+#include "util/status.h"
 
 namespace GFX {
 
@@ -19,6 +20,8 @@ class Shader {
   private:
     Shader(const char* vs, const char* fs, const char* gs);
     void CheckCompileErrors(GLuint shader, const std::string& type);
+    static util::Status ProcessIncludes(std::string* text);
+
     GLuint program_;
 };
 

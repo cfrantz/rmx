@@ -28,6 +28,7 @@ void RayMarchScene::Init() {
     loc_.ambient =      glGetUniformLocation(program, "scene_ambient");
     loc_.light0pos =    glGetUniformLocation(program, "scene_light0pos");
     loc_.light0col =    glGetUniformLocation(program, "scene_light0col");
+    loc_.op =           glGetUniformLocation(program, "scene_op");
     loc_.position =     glGetAttribLocation(program, "position");
 
 
@@ -45,6 +46,7 @@ void RayMarchScene::Draw() {
     glUniform4fv(loc_.ambient, 1, glm::value_ptr(ambient_));
     glUniform3fv(loc_.light0pos, 1, glm::value_ptr(light0pos_));
     glUniform4fv(loc_.light0col, 1, glm::value_ptr(light0col_));
+    glUniform1i(loc_.op, op_);
 
     GLfloat vertices[] = {
         -1.0f, -1.0f,

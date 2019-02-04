@@ -1,8 +1,12 @@
 #include "gfx/shader.h"
 
 #include "absl/memory/memory.h"
+#include "absl/strings/str_cat.h"
+#include "re2/re2.h"
 #include "util/file.h"
 #include "util/logging.h"
+#include "util/os.h"
+#include "util/status_macros.h"
 
 namespace GFX {
 
@@ -17,9 +21,13 @@ std::unique_ptr<Shader> Shader::Load(const std::string& vs,
     std::string vertex, fragment, geometry;
 
     File::GetContents(vs, &vertex);
+    ProcessIncludes(&vertex);
     File::GetContents(fs, &fragment);
+    ProcessIncludes(&fragment);
+    //LOG(INFO, "Fragment shader\n", fragment);
     if (!gs.empty()) {
         File::GetContents(gs, &geometry);
+        ProcessIncludes(&geometry);
     }
 
     return absl::WrapUnique(
@@ -65,7 +73,7 @@ Shader::Shader(const char* vs, const char* fs, const char* gs) {
 
 void Shader::CheckCompileErrors(GLuint shader, const std::string& type) {
     GLint success = true;
-    GLchar info[1024] = {0,};
+    GLchar info[64*1024] = {0,};
 
     if (type == "program") {
         glGetProgramiv(shader, GL_LINK_STATUS, &success);
@@ -73,9 +81,24 @@ void Shader::CheckCompileErrors(GLuint shader, const std::string& type) {
         glGetProgramiv(shader, GL_COMPILE_STATUS, &success);
     }
     if (!success) {
-        glGetProgramInfoLog(shader, 1024, nullptr, info);
+        glGetProgramInfoLog(shader, sizeof(info), nullptr, info);
         LOG(ERROR, "Error in ", type, "(", shader, "):\n", info);
     }
+}
+
+util::Status Shader::ProcessIncludes(std::string* text) {
+    std::string filename;
+
+    while(RE2::PartialMatch(*text, "#include \"([^\"]+)\"", &filename)) {
+        std::string replace = RE2::QuoteMeta(
+                absl::StrCat("#include \"", filename, "\""));
+        filename = os::path::Join({os::path::ResourceDir(), "content", filename});
+        LOG(INFO, "Match: ", replace, " filename=", filename);
+        std::string data;
+        File::GetContents(filename, &data);
+        RE2::Replace(text, replace, data);
+    }
+    return util::Status();
 }
 
 }  // namespace GFX

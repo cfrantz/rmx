@@ -30,22 +30,11 @@ float mapTo(float x, float minX, float maxX, float minY, float maxY) {
     return a * x + b;
 }
 
-float vmax(vec3 v) {
-    return max(max(v.x, v.y), v.z);
-}
-
-float fSphere(vec3 position, float radius) {
-    return length(position) - radius;
-}
-
-float fBoxCheap(vec3 position, vec3 size) {
-    return vmax(abs(position) - size);
-}
+#include "hg_sdf.inc"
+#include "boolops.inc"
 
 float DistScene(vec3 position) {
-    float a = fSphere(position, 0.5);
-    float b = fBoxCheap(position, vec3(0.25, 0.33, 1.0));
-    return max(b, -a);
+    return fBoolOps(position);
 }
 
 // Approximate the normalized gradient of the distance function at point p.
@@ -126,7 +115,7 @@ vec4 DistLines(vec3 p) {
 
 vec4 ComputeColor(vec3 ro, vec3 rd) {
     vec3 floor_normal = vec3(0, 1, 0);
-    vec3 floor_pos = vec3(0, -0.5f, 0);
+    vec3 floor_pos = vec3(0, -1.5f, 0);
 
     float t;                    // Distance travelled by ray to eye
     vec3 p;                     // Surface point

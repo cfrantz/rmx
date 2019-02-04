@@ -196,6 +196,7 @@ save_as:
         ImGui::ColorEdit4("Sky Color", glm::value_ptr(scene_->sky_color_));
         ImGui::ColorEdit4("Ambient", glm::value_ptr(scene_->ambient_));
         ImGui::ColorEdit4("Light0", glm::value_ptr(scene_->light0col_));
+        ImGui::InputInt("Operation", &scene_->op_);
         ImGui::End();
     }
 #if 0
