@@ -97,6 +97,7 @@ cc_library(
     hdrs = [
         "status.h",
         "statusor.h",
+        "status_macros.h",
     ],
     srcs = [
         "status.cc",
